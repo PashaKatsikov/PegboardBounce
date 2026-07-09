@@ -7,9 +7,17 @@ class AppAssets {
 
   // Branding / screens
   static const String logo = '${_add}Game_Name.webp';
-  static const String icon = '${_add}Icon.png';
+  static const String icon = '${_add}icon2.png';
   static const String verticalLoading = '${_add}Vertical_Loading_Screen.webp';
-  static const String horizontalLoading = '${_add}Horizontal_Loading_Screen.webp';
+  static const String horizontalLoading =
+      '${_add}Horizontal_Loading_Screen.webp';
+  static const String verticalNoWifi = '${_add}Vertical_Nowifi_Screen.webp';
+  static const String horizontalNoWifi =
+      '${_add}Horizontal_Nowifi_Screen.webp';
+  static const String verticalNotifications =
+      '${_add}Vertical_Notifications_Screen.webp';
+  static const String horizontalNotifications =
+      '${_add}Horizontal_Notifications_Screen.webp';
 
   // Gameplay backgrounds (one per theme / level rotation)
   static const List<String> backgrounds = [
