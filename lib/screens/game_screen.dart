@@ -5,6 +5,7 @@ import '../core/app_theme.dart';
 import '../core/game_storage.dart';
 import '../game/difficulty.dart';
 import '../game/game_controller.dart';
+import '../relay/insight.dart';
 import '../widgets/game_background.dart';
 import '../widgets/gold_button.dart';
 import '../widgets/memory_tile.dart';
@@ -36,6 +37,8 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
+    Insight.screen('game');
+    Insight.tag('level', widget.difficulty.name);
     _newBoard();
   }
 

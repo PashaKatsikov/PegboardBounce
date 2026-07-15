@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/app_assets.dart';
 import '../core/app_theme.dart';
+import '../relay/insight.dart';
 import 'bounce_button.dart';
 
 /// Shown whenever connectivity is missing. Uses the project-specific
@@ -23,8 +24,15 @@ class NoSignalView extends StatefulWidget {
 class _NoSignalViewState extends State<NoSignalView> {
   bool _busy = false;
 
+  @override
+  void initState() {
+    super.initState();
+    Insight.screen('offline');
+  }
+
   Future<void> _retry() async {
     if (_busy) return;
+    Insight.event('offline_retry');
     setState(() => _busy = true);
     await Future<void>.delayed(const Duration(milliseconds: 450));
     if (!mounted) return;

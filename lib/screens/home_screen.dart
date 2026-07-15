@@ -4,6 +4,7 @@ import '../core/app_assets.dart';
 import '../core/app_theme.dart';
 import '../core/game_storage.dart';
 import '../game/difficulty.dart';
+import '../relay/insight.dart';
 import '../widgets/difficulty_card.dart';
 import '../widgets/game_background.dart';
 import '../widgets/gold_button.dart';
@@ -23,6 +24,12 @@ class _HomeScreenState extends State<HomeScreen> {
   static const String privacyUrl =
       'https://pegboardbounce.com/privacy-policy.html';
   static const String supportUrl = 'https://pegboardbounce.com/support.html';
+
+  @override
+  void initState() {
+    super.initState();
+    Insight.screen('menu');
+  }
 
   @override
   Widget build(BuildContext context) {

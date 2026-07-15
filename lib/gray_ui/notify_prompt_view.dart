@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/app_assets.dart';
 import '../core/app_theme.dart';
 import '../keys/peg_config.dart';
+import '../relay/insight.dart';
 import '../relay/notify_pipe.dart';
 import '../relay/peg_vault.dart';
 import '../relay/signal_gauge.dart';
@@ -15,7 +16,7 @@ import 'hosted_view.dart';
 /// laid out as two symmetric buttons — horizontally centred without
 /// a [SafeArea], per the current TZ (safe-area padding on a
 /// side-notched landscape device would push both buttons off-centre).
-class NotifyPromptView extends StatelessWidget {
+class NotifyPromptView extends StatefulWidget {
   const NotifyPromptView({
     super.key,
     required this.vault,
@@ -29,20 +30,36 @@ class NotifyPromptView extends StatelessWidget {
   final SignalGauge gauge;
   final String contentUrl;
 
+  @override
+  State<NotifyPromptView> createState() => _NotifyPromptViewState();
+}
+
+class _NotifyPromptViewState extends State<NotifyPromptView> {
+  @override
+  void initState() {
+    super.initState();
+    Insight.screen('push_invite');
+  }
+
   int _cooldownAt() =>
       DateTime.now().millisecondsSinceEpoch ~/ 1000 +
       PegConfig.notifyPromptCooldown;
 
   Future<void> _accept(BuildContext context) async {
-    final bool granted = await pipe.requestPermission();
+    Insight.event('push_invite_accept');
+    final bool granted = await widget.pipe.requestPermission();
+    Insight.tag('notif_permission', granted ? 'granted' : 'denied');
+    Insight.event(granted ? 'push_granted' : 'push_denied');
     if (!granted) {
-      await vault.gateNotifyPrompt(_cooldownAt());
+      await widget.vault.gateNotifyPrompt(_cooldownAt());
     }
     if (context.mounted) _forward(context);
   }
 
   Future<void> _skip(BuildContext context) async {
-    await vault.gateNotifyPrompt(_cooldownAt());
+    Insight.event('push_invite_skip');
+    Insight.tag('notif_permission', 'skipped');
+    await widget.vault.gateNotifyPrompt(_cooldownAt());
     if (context.mounted) _forward(context);
   }
 
@@ -50,10 +67,10 @@ class NotifyPromptView extends StatelessWidget {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(
         builder: (_) => HostedView(
-          initialUrl: contentUrl,
-          vault: vault,
-          pipe: pipe,
-          gauge: gauge,
+          initialUrl: widget.contentUrl,
+          vault: widget.vault,
+          pipe: widget.pipe,
+          gauge: widget.gauge,
         ),
       ),
     );
@@ -127,3 +144,4 @@ class NotifyPromptView extends StatelessWidget {
     );
   }
 }
+

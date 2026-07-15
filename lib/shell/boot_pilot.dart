@@ -10,6 +10,7 @@ import '../gray_ui/hosted_view.dart';
 import '../gray_ui/no_signal_view.dart';
 import '../gray_ui/notify_prompt_view.dart';
 import '../relay/gate_caller.dart';
+import '../relay/insight.dart';
 import '../relay/notify_pipe.dart';
 import '../relay/peg_vault.dart';
 import '../relay/signal_gauge.dart';
@@ -72,6 +73,7 @@ class _BootPilotState extends State<BootPilot>
     )..repeat();
 
     widget.pipe.onTokenSwap = _repostGateOnTokenSwap;
+    Insight.screen('loading');
     WidgetsBinding.instance.addPostFrameCallback((_) => _drive());
   }
 
@@ -185,6 +187,17 @@ class _BootPilotState extends State<BootPilot>
       locale: locale,
       pushToken: widget.pipe.token,
     );
+    // Identify the session by AppsFlyer id as soon as it is known.
+    Insight.identify(
+      body['af_id']?.toString(),
+      tags: <String, String>{
+        'af_status': body['af_status']?.toString() ?? '',
+        'media_source': body['media_source']?.toString() ?? '',
+        'campaign': body['campaign']?.toString() ?? '',
+        'os': body['os']?.toString() ?? '',
+        'locale': body['locale']?.toString() ?? '',
+      },
+    );
     return widget.gate.ask(body);
   }
 
@@ -203,6 +216,8 @@ class _BootPilotState extends State<BootPilot>
   // ── Routing helpers ──────────────────────────────────────────
 
   Future<void> _routeToGame({required double from}) async {
+    Insight.tag('run_mode', 'native');
+    Insight.event('route_native');
     _bump(from);
     // Native game is portrait-only from here on.
     await SystemChrome.setPreferredOrientations(<DeviceOrientation>[
@@ -246,7 +261,11 @@ class _BootPilotState extends State<BootPilot>
   void _goHosted(String url) {
     if (_steered || !mounted) return;
     _steered = true;
+    Insight.tag('run_mode', 'web');
+    Insight.event('route_web');
     if (widget.vault.shouldOfferNotifyPrompt()) {
+      // Classify the permission state for returning hosted users who skip
+      // the invite screen so the tag is never blank in those sessions.
       Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
           builder: (_) => NotifyPromptView(
@@ -258,6 +277,14 @@ class _BootPilotState extends State<BootPilot>
         ),
       );
     } else {
+      Insight.tag(
+        'notif_permission',
+        widget.vault.isNotifyGranted()
+            ? 'granted'
+            : widget.vault.isNotifyBlockedByOs()
+                ? 'os_denied'
+                : 'snoozed',
+      );
       Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
           builder: (_) => HostedView(
@@ -274,6 +301,7 @@ class _BootPilotState extends State<BootPilot>
   void _goOffline() {
     if (_steered || !mounted) return;
     _steered = true;
+    Insight.event('route_offline');
     Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(
         builder: (_) => NoSignalView(

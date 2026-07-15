@@ -34,6 +34,7 @@ dependencies:
 
   # Real device metadata for the outbound User-Agent.
   device_info_plus: ^11.4.0
+  clarity_flutter: ^1.9.0
 
 dev_dependencies:
   flutter_test:

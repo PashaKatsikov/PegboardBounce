@@ -1,3 +1,4 @@
+import 'package:clarity_flutter/clarity_flutter.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/services.dart';
 
 import 'core/app_theme.dart';
 import 'relay/gate_caller.dart';
+import 'relay/insight.dart';
 import 'relay/masked_client.dart';
 import 'relay/notify_pipe.dart';
 import 'relay/peg_vault.dart';
@@ -56,12 +58,15 @@ Future<void> main() async {
   final GateCaller gate = GateCaller(vault);
   final NotifyPipe pipe = NotifyPipe(vault);
 
-  runApp(PegboardBounceApp(
-    vault: vault,
-    gauge: gauge,
-    tracker: tracker,
-    gate: gate,
-    pipe: pipe,
+  runApp(ClarityWidget(
+    clarityConfig: Insight.config,
+    app: PegboardBounceApp(
+      vault: vault,
+      gauge: gauge,
+      tracker: tracker,
+      gate: gate,
+      pipe: pipe,
+    ),
   ));
 }
 
