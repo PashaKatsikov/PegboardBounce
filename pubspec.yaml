@@ -1,7 +1,7 @@
 name: pegboard_bounce
 description: "Pegboard Bounce - a colorful memory matching game."
 publish_to: 'none'
-version: 1.0.1+4
+version: 1.0.1+6
 
 environment:
   sdk: ^3.12.2

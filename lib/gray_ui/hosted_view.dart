@@ -107,8 +107,29 @@ class _HostedViewState extends State<HostedView> with WidgetsBindingObserver {
     });
   }
 
+  // Draw content behind fully-transparent system bars. The nav bar
+  // is always there (invisible), so its geometry never changes when
+  // the IME opens a keyboard — the WebView layout stays perfectly
+  // stable in both orientations. Actual safe padding for the nav
+  // bar zone is applied by SafeArea in build(), like we already do
+  // for the camera cutout.
   void _immersive() {
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    // Hide the status bar (time / battery / signal) but keep the
+    // navigation bar drawn — so its geometry is stable when the
+    // keyboard opens and the WebView never jerks.
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: <SystemUiOverlay>[SystemUiOverlay.bottom],
+    );
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.light,
+      systemNavigationBarContrastEnforced: false,
+      systemStatusBarContrastEnforced: false,
+    ));
   }
 
   @override
@@ -558,15 +579,23 @@ class _HostedViewState extends State<HostedView> with WidgetsBindingObserver {
       },
       child: Scaffold(
         backgroundColor: Colors.black,
+        // Never resize on keyboard show/hide — the WebView handles
+        // scrolling the focused input into view itself. Combined
+        // with edge-to-edge below, this eliminates the layout jump
+        // when the IME appears on button-navigation devices.
         resizeToAvoidBottomInset: false,
         body: Stack(
           fit: StackFit.expand,
           children: <Widget>[
-            // Camera cutout gutter is honoured in BOTH orientations
-            // (top in portrait, left/right in landscape); bottom
-            // remains flush because system bars are hidden.
-            SafeArea(
-              bottom: false,
+            // Reserve safe padding on ALL sides in both orientations:
+            //  • top / left / right — camera cutout / status bar
+            //  • bottom / side (in landscape) — 3-button nav bar
+            // We use MediaQuery.viewPadding so the reservation is
+            // driven by the raw system-bar insets and stays constant
+            // whether or not the keyboard is up. This keeps the
+            // WebView geometry rock-stable when the IME toggles.
+            Padding(
+              padding: MediaQuery.viewPaddingOf(context),
               child: WebViewWidget(controller: _wv),
             ),
             if (_spin)
